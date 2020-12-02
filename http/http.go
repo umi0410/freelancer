@@ -15,6 +15,11 @@ type AddRequest struct{
 	Number int
 }
 
+type SocketMessage struct{
+	Type string
+	Data interface{}
+}
+
 var (
 	upgrader = websocket.Upgrader{}
 	WebsocketConnections = []*websocket.Conn{}
@@ -33,9 +38,6 @@ func NewEcho() *echo.Echo{
 	group.POST("/tasks", createTasksHandler)
 
 	e.GET("/ws", wsHandler)
-	e.GET("/ws/", wsHandler)
-
-	//go broadcast()
 
 	e.Static("/", "./public")
 	return e
@@ -96,21 +98,21 @@ func wsHandler(c echo.Context) error {
 	if err != nil {
 		logrus.Panic(err)
 	}
+
+	//ws.send
 	defer ws.Close()
 	for report := range office.Reports {
 		// Write
-		//data, err := json.Marshal(map[string]interface{}{"name": "report", "data": report})
-		//for _, ws := range WebsocketConnections{
-			data, err := json.Marshal(report)
-			if err != nil {
-				logrus.Error(err)
-			}
-			err = ws.WriteMessage(websocket.TextMessage, data)
-			if err != nil {
-				logrus.Println("A user has been disconnected")
-				return err
-			}
-		//}
+		//data, err := json.Marshal(map[string]interface{}{"type":"message", "event": "report", "name": "report", "data": report, "endpoint": "/ws"})
+		data, err := json.Marshal(report)
+		if err != nil {
+			logrus.Error(err)
+		}
+		err = ws.WriteMessage(websocket.TextMessage, data)
+		if err != nil {
+			logrus.Println("A user has been disconnected")
+			return err
+		}
 	}
 
 	return nil

@@ -12,6 +12,7 @@ type FreelancerGopher struct{
 	Name string
 	State string
 	TasksDone int
+	CurrentTask *Task
 	WorkingHour time.Duration `json:"-"`
 	WorkingHourString string `json:"WorkingHour"`
 	TasksOut <-chan Task `json:"-"` // 채널은 json으로 직렬화될 수 없음.
@@ -19,6 +20,9 @@ type FreelancerGopher struct{
 
 type Task int
 
+type FreelancerStateReport struct{
+	Freelancer FreelancerGopher
+}
 
 // a freelancer gopher is hired by you
 func (freelancer *FreelancerGopher) Start(){

@@ -9,10 +9,10 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible h1:7qlOGliEKZXTDg6OTjfoBKDXWrumCAMpl/TFQ4/5kLM=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
-github.com/gorilla/http v0.0.0-20190627042742-d268792bdee7 h1:bFJgNQQcl/uBD2BuTZGYZ3lDomhIxCcn8r812nV0YmY=
-github.com/gorilla/http v0.0.0-20190627042742-d268792bdee7/go.mod h1:7SoxxYlLs8XfoT5AXYy1WWMqjg3iaA9gZblNHzXQDqo=
 github.com/gorilla/websocket v1.4.2 h1:+/TMaTYc4QFitKJxsQ7Yye35DkWvkdLcvGKqM+x0Ufc=
 github.com/gorilla/websocket v1.4.2/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
+github.com/graarh/golang-socketio v0.0.0-20170510162725-2c44953b9b5f h1:utzdm9zUvVWGRtIpkdE4+36n+Gv60kNb7mFvgGxLElY=
+github.com/graarh/golang-socketio v0.0.0-20170510162725-2c44953b9b5f/go.mod h1:8gudiNCFh3ZfvInknmoXzPeV17FSH+X2J5k2cUPIwnA=
 github.com/icrowley/fake v0.0.0-20180203215853-4178557ae428 h1:Mo9W14pwbO9VfRe+ygqZ8dFbPpoIK1HFrG/zjTuQ+nc=
 github.com/icrowley/fake v0.0.0-20180203215853-4178557ae428/go.mod h1:uhpZMVGznybq1itEKXj6RYw9I71qK4kH+OGMjRC4KEo=
 github.com/labstack/echo/v4 v4.1.17 h1:PQIBaRplyRy3OjwILGkPg89JRtH2x5bssi59G2EL3fo=
