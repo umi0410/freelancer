@@ -7,6 +7,14 @@ import (
 	"time"
 )
 
+const(
+	FreelancerGopherIdleState string = "idle"
+	FreelancerGopherWorkingState string = "working"
+	FreelancerGopherToBeFiredState string = "to_be_fired" // CSS에서 바로 이용하기위해 _ case
+	FreelancerGopherFiredState string = "fired"
+	IdleTimeout time.Duration = time.Second * 5 // idle timeout 을 넘어서도 idle하면 짤림.
+)
+
 type FreelancerGopher struct{
 	ID int
 	Name string
@@ -20,21 +28,29 @@ type FreelancerGopher struct{
 
 type Task int
 
-type FreelancerStateReport struct{
-	Freelancer FreelancerGopher
-}
+//type FreelancerStateReport struct{
+//	Freelancer FreelancerGopher
+//}
 
 // a freelancer gopher is hired by you
 func (freelancer *FreelancerGopher) Start(){
-	logger := logrus.WithFields(logrus.Fields{"name": freelancer.ID})
-	logger.Println("Start")
-	defer logger.Println("Finish")
+	logger := logrus.WithFields(logrus.Fields{"id": freelancer.ID, "name": freelancer.Name})
+	logger.Println("직장을 다니기 시작합니다.")
+	defer func() {
+		freelancer.State = FreelancerGopherToBeFiredState
+		FreelancerStateReports <- *freelancer
+		logger.Warn("직장에서 잘릴 예정입니다.")
+	}()
 
-	for task := range freelancer.TasksOut{
-		// 복사를 이용하므로 값 안전
-
-		freelancer.Work(task)
-		Reports <- *freelancer
+	FreelancerStateReports <- *freelancer // 입사 신고
+	// 복사를 이용하므로 값 안전
+	for	isFired := false; !isFired;{
+		select {
+		case task := <-freelancer.TasksOut:
+			freelancer.Work(task)
+		case <-time.After(IdleTimeout):
+			isFired = true
+		}
 	}
 }
 
@@ -46,18 +62,18 @@ func (freelancer *FreelancerGopher) Work(task Task){
 	defer func(){
 		//일을 마쳤다는 보고
 		freelancer.WorkingHourString = strconv.Itoa(int(freelancer.WorkingHour.Seconds())) + " s"
-		Reports <- *freelancer
-		logger.Println("Finish work")
+		FreelancerStateReports <- *freelancer
+		logger.Println("작업을 마쳤습니다.")
 	}()
-	freelancer.State = "working"
+	freelancer.State = FreelancerGopherWorkingState
 	// 일을 시작한다는 보고
-	Reports <- *freelancer
-	logger.Println("Start work")
+	FreelancerStateReports <- *freelancer
+	logger.Println("작업을 시작합니다.")
 	startTime := time.Now()
 
-	freelancer.HandleTask()
+	freelancer.handleTask()
 
-	freelancer.State = "idle"
+	freelancer.State = FreelancerGopherIdleState
 
 	endTime := time.Now()
 	elapsed := endTime.Sub(startTime)
@@ -66,8 +82,9 @@ func (freelancer *FreelancerGopher) Work(task Task){
 
 }
 
-func (freelancer *FreelancerGopher) HandleTask(){
+// 실제 작업
+func (freelancer *FreelancerGopher) handleTask(){
 	estimatedTime := time.Millisecond * time.Duration(rand.Int() % 6000)
-	//estimatedTime := time.Millisecond * time.Duration(3 + rand.Int() % 6)
+	//estimatedTime := time.Duration(0)
 	time.Sleep(estimatedTime)
 }

@@ -69,7 +69,7 @@ func createFreelancersHandler(context echo.Context)  error {
 	if err != nil{
 		logrus.Panic(err)
 	}
-	logrus.Info(body)
+	logrus.Infof("%#v", body)
 	office.HireFreelancers(body.Number)
 
 	return context.String(201, strconv.Itoa(body.Number) + " freelancers has been hired.")
@@ -81,7 +81,7 @@ func createTasksHandler(context echo.Context) error {
 	if err != nil {
 		logrus.Panic(err)
 	}
-	logrus.Info(body)
+	logrus.Infof("%#v", body)
 	// 받아주는 채널이 있어야만 집어넣을 수 있음 => 집어넣는 작업도 goroutine으로
 	go office.AddTasks(body.Number)
 
@@ -116,20 +116,21 @@ func wsHandler(c echo.Context) error {
 
 	//ws.send
 	defer ws.Close()
-	for report := range office.Reports {
-		// Write
-		//data, err := json.Marshal(map[string]interface{}{"type":"message", "event": "report", "name": "report", "data": report, "endpoint": "/ws"})
-		//data, err := json.Marshal(report)
-		//if err != nil {
-		//	logrus.Error(err)
-		//}
-		err = ws.WriteJSON(SocketMessage{Type: "freelancer_state_report", Data: report})
+	for {
+		var message interface{}
+		var messageType string
+		select{
+		case message = <- office.FreelancerStateReports:
+			messageType = "freelancer_state_report"
+		case message = <- office.FreelancerFireReports:
+			messageType = "freelancer_fire_report"
+		}
+
+		err = ws.WriteJSON(SocketMessage{Type: messageType, Data: message})
 		if err != nil {
 			logrus.Println("A user has been disconnected")
 			return err
 		}
 	}
-
-	return nil
 }
 
