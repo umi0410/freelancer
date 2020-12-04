@@ -9,4 +9,5 @@ require (
 	github.com/icrowley/fake v0.0.0-20180203215853-4178557ae428
 	github.com/labstack/echo/v4 v4.1.17
 	github.com/sirupsen/logrus v1.7.0
+	golang.org/x/net v0.0.0-20200822124328-c89045814202
 )

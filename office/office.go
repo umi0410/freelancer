@@ -1,6 +1,7 @@
 package office
 
 import (
+	"context"
 	"github.com/icrowley/fake"
 	"github.com/sirupsen/logrus"
 	"sync"
@@ -10,7 +11,7 @@ import (
 const (
 	// 해고 작업 시작 후 마치기까지 걸리는 시간
 	// to_be_fired => fired로 처리되는데에 걸리는 시간.
-	FireDuration = time.Second * 1
+	FireDuration = time.Nanosecond * 1
 )
 var (
 	Freelancers = make([]*FreelancerGopher, 0)
@@ -34,35 +35,60 @@ func HireFreelancers(num int){
 		} else{
 			id = Freelancers[length-1].ID + 1
 		}
+		idleSign := make(chan bool)
+		//finishedChan := make(chan bool)
+		ctx, notifyFired := context.WithCancel(context.Background())
 		freelancer := &FreelancerGopher{
+			Context: ctx,
 			ID: id,
 			Name: createUniqueName(),
 			State: "idle",
 			TasksOut: Tasks,
+			IdleSign: idleSign,
+			Mutex: new(sync.Mutex),
+			//Finished: finishedChan,
 		}
 		// 새로 고용한 프리랜서를 보고함.
-		// Reports의 수신자가 ready 될 때 까지 block 되므로 go routine으로 실
+		HRMutex.Lock()
 		Freelancers = append(Freelancers, freelancer)
-		go func(){
-			freelancerID := freelancer.ID
-			freelancerIndex := -1
-			freelancer.Start()
+		HRMutex.Unlock()
 
-			HRMutex.Lock()
-			logrus.WithField("부서", "인사과").WithField("name", freelancer.Name).Warn(freelancer.Name, "를 자르기 시작합니다. 한 명씩만 순서대로 잘려야합니다.")
-			time.Sleep(FireDuration)
-			for i, freelancer := range Freelancers{
-				if freelancerID == freelancer.ID{
-					freelancerIndex = i
-					break
+		go func(){
+			freelancer.Start()
+		}()
+		go func(){
+			for _ = range idleSign{
+				HRMutex.Lock()
+
+				logrus.WithField("부서", "인사과").WithField("name", freelancer.Name).Println(freelancer.Name, "의 고용을 검토합니다. 한 명씩만 순서대로 잘려야합니다.")
+				if len(Freelancers) <= MiniFreelancer{
+					logrus.WithField("부서", "인사과").WithField("name", freelancer.Name).Println("현재 최소 인력을 유지 중이므로", freelancer.Name, "는 잘리지 않습니다.")
+				} else{
+					logrus.WithField("부서", "인사과").WithField("name", freelancer.Name).Println(freelancer.Name, "를 자르는 방향으로 작업 중입니다.")
+					time.Sleep(FireDuration)
+					logrus.WithField("부서", "인사과").WithField("name", freelancer.Name).Println(freelancer.Name, "를 자르기로 결정했습니다.")
+
+					notifyFired() // context.Done()
+
+					freelancerIndex := -1
+
+					for i, f := range Freelancers{
+						if freelancer.ID == f.ID{
+							freelancerIndex = i
+							break
+						}
+					}
+					if freelancerIndex == -1{
+						logrus.WithField("부서", "인사과").WithField("name", freelancer.Name).Println(freelancer.Name, "은 이미 잘렸군요. idle 신호 후 자르는 동안 다시 idle 신호를 보내고 작업을 했나봅니다.")
+					} else{
+						Freelancers = append(Freelancers[:freelancerIndex], Freelancers[freelancerIndex+1:]...)
+						logrus.WithField("부서", "인사과").WithField("name", freelancer.Name).Println(freelancer.Name, "를 잘랐습니다.")
+					}
 				}
+
+				HRMutex.Unlock()
 			}
 
-			Freelancers = append(Freelancers[:freelancerIndex], Freelancers[freelancerIndex+1:]...)
-			logrus.WithField("부서", "인사과").WithField("name", freelancer.Name).Warn(freelancer.Name, "를 잘랐습니다.")
-			freelancer.State = FreelancerGopherFiredState
-			FreelancerFireReports <- *freelancer
-			HRMutex.Unlock()
 		}()
 	}
 }
