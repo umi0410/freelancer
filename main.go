@@ -17,11 +17,12 @@ func init(){
 func main(){
 	e := http.NewEcho()
 
+	office.MainOffice = office.NewOffice()
 	go func(){
-		office.NewOffice()
+		office.MainOffice.HireFreelancers(10)
 	}()
 	go func(){
-		office.AddTasks(3)
+		office.MainOffice.AddTasks(3)
 	}()
 
 	e.Logger.Fatal(e.Start(":1323"))
