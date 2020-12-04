@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/umi0410/freelancer/http"
 	"github.com/umi0410/freelancer/office"
 	"math/rand"
@@ -10,7 +11,8 @@ import (
 
 
 func init(){
-	//logrus.SetLevel(logrus.WarnLevel)
+	logrus.SetLevel(logrus.ErrorLevel)
+	//logrus.SetLevel(logrus.DebugLevel)
 	rand.Seed(time.Now().UnixNano())
 }
 

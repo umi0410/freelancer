@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/icrowley/fake"
 	"github.com/sirupsen/logrus"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -44,7 +45,13 @@ func (office *Office) HireFreelancers(num int){
 }
 
 func (office *Office) HireFreelancer(){
+	logrus.Debug("Start HireFreelancer")
 	var id int
+	office.HRMutex.Lock()
+	if(len(office.Freelancers) == 200){
+		logrus.Debug("Can't enter 1")
+	}
+
 	length := len(office.Freelancers)
 	if length == 0{
 		id = 1
@@ -66,11 +73,11 @@ func (office *Office) HireFreelancer(){
 		//Finished: finishedChan,
 	}
 	// 새로 고용한 프리랜서를 목록에 추가함.
-	office.HRMutex.Lock()
 	logrus.WithField("부서", "인사과").Println(freelancer.Name, "을 채용했습니다.")
+	logrus.Println("현재", freelancer.Name, len(office.Freelancers))
 	office.Freelancers = append(office.Freelancers, freelancer)
 	office.HRMutex.Unlock()
-
+	logrus.Println("현재", freelancer.Name, len(office.Freelancers), "Unlocked")
 	go func(){
 		freelancer.Start()
 	}()
@@ -78,8 +85,10 @@ func (office *Office) HireFreelancer(){
 	go func(){
 		// freelancer가 idle timeout이 걸릴 정도로 일이 없을 때
 		for _ = range idleSign{
+			logrus.Debug("해고좀 당해라")
+			logrus.Println(freelancer.Name, len(office.Freelancers))
 			office.HRMutex.Lock()
-
+			logrus.Debug("LOCK을 못 뚫어")
 			logrus.WithField("부서", "인사과").WithField("name", freelancer.Name).Println(freelancer.Name, "의 고용을 검토합니다. 한 명씩만 순서대로 잘려야합니다.")
 			if len(office.Freelancers) <= office.MiniFreelancer{
 				logrus.WithField("부서", "인사과").WithField("name", freelancer.Name).Println("현재 최소 인력을 유지 중이므로", freelancer.Name, "는 잘리지 않습니다.")
@@ -106,11 +115,12 @@ func (office *Office) HireFreelancer(){
 					logrus.WithField("부서", "인사과").WithField("name", freelancer.Name).Println(freelancer.Name, "를 잘랐습니다.")
 				}
 			}
+			logrus.Debug("난 해고 했음")
 
 			office.HRMutex.Unlock()
 		}
 	}()
-
+	logrus.Debug("Finish HireFreelancer")
 }
 
 func (office *Office) AddTasks(num int){
@@ -120,18 +130,21 @@ func (office *Office) AddTasks(num int){
 }
 
 func createUniqueName(office *Office) string{
-	var name string
-	office.HRMutex.Lock()
-	for exists:= true; exists;{
-		exists = false
-		name = fake.FirstName()
-		for _, freelancer := range office.Freelancers{
-			if freelancer.Name == name{
-				exists = true
-			}
+	var (
+		name string = fake.FirstName()
+		duplicatedCount int = 0
+	)
+
+
+	for _, freelancer := range office.Freelancers{
+		if freelancer.Name == name{
+			duplicatedCount += 1
 		}
 	}
-	office.HRMutex.Unlock()
+
+	if duplicatedCount != 0{
+		name += strconv.Itoa(duplicatedCount)
+	}
 
 	return name
 }
