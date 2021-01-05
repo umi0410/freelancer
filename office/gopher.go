@@ -14,7 +14,7 @@ const(
 	FreelancerGopherWorkingState string = "working"
 	FreelancerGopherToBeFiredState string = "to_be_fired" // CSS에서 바로 이용하기위해 _ case
 	FreelancerGopherFiredState string = "fired"
-	IdleTimeout time.Duration = time.Second * 3 // idle timeout 을 넘어서도 idle하면 짤림.
+	IdleTimeout time.Duration = time.Second * 1 // idle timeout 을 넘어서도 idle하면 짤림.
 	BaseTaskDuration time.Duration = time.Millisecond * 3000
 	RandomTaskBlock = 3
 )

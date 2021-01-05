@@ -85,10 +85,7 @@ func (office *Office) HireFreelancer(){
 	go func(){
 		// freelancer가 idle timeout이 걸릴 정도로 일이 없을 때
 		for _ = range idleSign{
-			logrus.Debug("해고좀 당해라")
-			logrus.Println(freelancer.Name, len(office.Freelancers))
 			office.HRMutex.Lock()
-			logrus.Debug("LOCK을 못 뚫어")
 			logrus.WithField("부서", "인사과").WithField("name", freelancer.Name).Println(freelancer.Name, "의 고용을 검토합니다. 한 명씩만 순서대로 잘려야합니다.")
 			if len(office.Freelancers) <= office.MiniFreelancer{
 				logrus.WithField("부서", "인사과").WithField("name", freelancer.Name).Println("현재 최소 인력을 유지 중이므로", freelancer.Name, "는 잘리지 않습니다.")

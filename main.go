@@ -11,8 +11,9 @@ import (
 
 
 func init(){
-	logrus.SetLevel(logrus.ErrorLevel)
-	//logrus.SetLevel(logrus.DebugLevel)
+	//logrus.SetLevel(logrus.ErrorLevel)
+	logrus.SetFormatter(&logrus.TextFormatter{ForceColors: true, DisableColors: false})
+	logrus.SetLevel(logrus.DebugLevel)
 	rand.Seed(time.Now().UnixNano())
 }
 
@@ -21,10 +22,10 @@ func main(){
 
 	office.MainOffice = office.NewOffice()
 	go func(){
-		office.MainOffice.HireFreelancers(10)
+		office.MainOffice.HireFreelancers(4)
 	}()
 	go func(){
-		office.MainOffice.AddTasks(3)
+		office.MainOffice.AddTasks(0)
 	}()
 
 	e.Logger.Fatal(e.Start(":1323"))
